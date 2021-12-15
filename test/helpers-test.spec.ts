@@ -1,9 +1,5 @@
-/*jshint globalstrict:true, devel:true */
-/*eslint no-var:0 */
-/*global require, describe, before, it */
-"use strict";
-
-var XlsxTemplate = require('../lib');
+import { Element } from "elementtree";
+import XlsxTemplate from '../src';
 
 describe("Helpers", function() {
 
@@ -158,28 +154,28 @@ describe("Helpers", function() {
 
         it("splits single digit and letter values", function() {
             var t = new XlsxTemplate();
-            expect(t.splitRef("A1")).toEqual({table: null, col: "A", colAbsolute: false, row: 1, rowAbsolute: false});
+            expect(t.splitRef("A1")).toEqual({table: null, col: "A", colNo: 1, colAbsolute: false, row: 1, rowAbsolute: false});
         });
 
         it("splits multiple digit and letter values", function() {
             var t = new XlsxTemplate();
-            expect(t.splitRef("AB12")).toEqual({table: null, col: "AB", colAbsolute: false, row: 12, rowAbsolute: false});
+            expect(t.splitRef("AB12")).toEqual({table: null, col: "AB", colNo: 28, colAbsolute: false, row: 12, rowAbsolute: false});
         });
 
         it("splits absolute references", function() {
             var t = new XlsxTemplate();
-            expect(t.splitRef("$AB12")).toEqual({table: null, col: "AB", colAbsolute: true, row: 12, rowAbsolute: false});
-            expect(t.splitRef("AB$12")).toEqual({table: null, col: "AB", colAbsolute: false, row: 12, rowAbsolute: true});
-            expect(t.splitRef("$AB$12")).toEqual({table: null, col: "AB", colAbsolute: true, row: 12, rowAbsolute: true});
+            expect(t.splitRef("$AB12")).toEqual({table: null, col: "AB", colNo: 28, colAbsolute: true, row: 12, rowAbsolute: false});
+            expect(t.splitRef("AB$12")).toEqual({table: null, col: "AB", colNo: 28,colAbsolute: false, row: 12, rowAbsolute: true});
+            expect(t.splitRef("$AB$12")).toEqual({table: null, col: "AB", colNo: 28,colAbsolute: true, row: 12, rowAbsolute: true});
         });
 
         it("splits references with tables", function() {
             var t = new XlsxTemplate();
-            expect(t.splitRef("Table one!AB12")).toEqual({table: "Table one", col: "AB", colAbsolute: false, row: 12, rowAbsolute: false});
-            expect(t.splitRef("Table one!$AB12")).toEqual({table: "Table one", col: "AB", colAbsolute: true, row: 12, rowAbsolute: false});
-            expect(t.splitRef("Table one!$AB12")).toEqual({table: "Table one", col: "AB", colAbsolute: true, row: 12, rowAbsolute: false});
-            expect(t.splitRef("Table one!AB$12")).toEqual({table: "Table one", col: "AB", colAbsolute: false, row: 12, rowAbsolute: true});
-            expect(t.splitRef("Table one!$AB$12")).toEqual({table: "Table one", col: "AB", colAbsolute: true, row: 12, rowAbsolute: true});
+            expect(t.splitRef("Table one!AB12")).toEqual({table: "Table one", col: "AB", colNo: 28, colAbsolute: false, row: 12, rowAbsolute: false});
+            expect(t.splitRef("Table one!$AB12")).toEqual({table: "Table one", col: "AB", colNo: 28, colAbsolute: true, row: 12, rowAbsolute: false});
+            expect(t.splitRef("Table one!$AB12")).toEqual({table: "Table one", col: "AB", colNo: 28, colAbsolute: true, row: 12, rowAbsolute: false});
+            expect(t.splitRef("Table one!AB$12")).toEqual({table: "Table one", col: "AB", colNo: 28, colAbsolute: false, row: 12, rowAbsolute: true});
+            expect(t.splitRef("Table one!$AB$12")).toEqual({table: "Table one", col: "AB", colNo: 28, colAbsolute: true, row: 12, rowAbsolute: true});
         });
 
     });
@@ -414,7 +410,7 @@ describe("Helpers", function() {
         it("can stringify dates", function() {
             var t = new XlsxTemplate();
 
-            expect(t.stringify(new Date("2013-01-01"))).toEqual(41275);
+            expect(t.stringify(new Date("2013-01-01"))).toEqual('41275');
         });
 
         it("can stringify numbers", function() {
@@ -460,7 +456,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("bar");
@@ -488,7 +484,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("bar");
@@ -519,7 +515,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("10");
@@ -547,7 +543,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("0");
@@ -575,7 +571,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("1");
@@ -603,12 +599,12 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
-            expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual(41275);
+            expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual('41275');
             expect(col.attrib.t).not.toBeDefined();
-            expect(val.text).toEqual(41275);
+            expect(val.text).toEqual('41275');
             expect(t.sharedStrings).toEqual(["${foo}"]);
         });
 
@@ -631,7 +627,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("foo: bar");
@@ -659,7 +655,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("foo: 0");
@@ -687,7 +683,7 @@ describe("Helpers", function() {
                     find: function() {
                         return val;
                     }
-                };
+                } as any as Element;
 
             t.addSharedString(string);
             expect(t.substituteScalar(col, string, placeholder, substitution)).toEqual("foo: 10");

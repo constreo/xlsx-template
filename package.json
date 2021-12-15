@@ -17,20 +17,24 @@
     {
       "name": "Andrii Kurdiumov",
       "email": "kant2002@gmail.com"
+    },
+    {
+      "name": "Constreo Systems",
+      "email": "info@constreo.de"
     }
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "http://github.com/optilude/xlsx-template.git"
+    "url": "http://github.com/constreo/xlsx-template.git"
   },
   "bugs": {
-    "url": "http://github.com/optilude/xlsx-template/issues"
+    "url": "http://github.com/constreo/xlsx-template/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/optilude/xlsx-template/raw/master/LICENSE"
+      "url": "http://github.com/constreo/xlsx-template/raw/master/LICENSE"
     }
   ],
   "jest": {
@@ -43,7 +47,7 @@
     "transform": {
       ".(js|ts|tsx)": "ts-jest"
     },
-    "testRegex": "(/__tests__/.*|-(test|spec))\\.(ts|tsx|js)$",
+    "testRegex": ".*\\.spec\\.(ts|tsx|js)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -51,8 +55,8 @@
     ],
     "testTimeout": 500,
     "moduleNameMapper": {
-      "^app/(.*)": "<rootDir>/lib/$1",
-      "^tests/(.*)": "<rootDir>/tests/$1"
+      "^app/(.*)": "<rootDir>/src/$1",
+      "^test/(.*)": "<rootDir>/test/$1"
     }
   },
   "dependencies": {
@@ -61,6 +65,8 @@
     "jszip": "^2.6.1"
   },
   "devDependencies": {
+    "@types/elementtree": "^0.1.1",
+    "@types/image-size": "^0.8.0",
     "@types/jest": "^26.0.9",
     "@types/jszip": "0.0.27",
     "@types/node": "^14.0.27",
@@ -69,7 +75,8 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc"
   },
   "readme": "",
   "readmeFilename": "README.md"
