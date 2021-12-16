@@ -53,6 +53,15 @@ export type Options = {
   moveSameLineImages?: boolean;
 };
 
+export type Placeholder = {
+  full?: string;
+  key?: string;
+  name?: string;
+  placeholder: string;
+  type?: string;
+  subType?: string;
+}
+
 export type Sheet = {
   id?: number;
   name?: string;

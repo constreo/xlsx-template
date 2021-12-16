@@ -1,9 +1,8 @@
+import sizeOf from 'buffer-image-size';
 import { Element, ElementTree, parse, SubElement, tostring } from 'elementtree';
-import fs from 'fs';
-import sizeOf from 'image-size';
 import JSZip from 'jszip';
 import path from 'path';
-import { CellReference, NamedTable, Options, Sheet, SubstitutionValue } from './types';
+import { CellReference, NamedTable, Options, Placeholder, Sheet, SubstitutionValue } from './types';
 
 const DOCUMENT_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
 const CALC_CHAIN_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain';
@@ -228,9 +227,9 @@ export default class XlsxTemplate {
       row.attrib.r = currentRow.toString();
       rows.push(row);
 
-      const cells = [];
+      const cells: Element[] = [];
       let cellsInserted = 0;
-      const newTableRows = [];
+      const newTableRows: Element[] = [];
 
       row.findall('c').forEach((cell) => {
         let appendCell = true;
@@ -251,10 +250,10 @@ export default class XlsxTemplate {
           // Loop over placeholders
           this.extractPlaceholders(sharedString).forEach((placeholder) => {
             // Only substitute things for which we have a substitution
-            let substitution = _get(substitutions, placeholder.name, '');
+            let substitution: any | any[] = _get(substitutions, placeholder.name, '');
             let newCellsInserted = 0;
 
-            if (placeholder.full && placeholder.type === 'table' && substitution instanceof Array) {
+            if (placeholder.full && placeholder.type === 'table' && Array.isArray(substitution)) {
               if (placeholder.subType === 'image' && drawing == null) {
                 if (rels) {
                   drawing = this.loadDrawing(sheet.root, sheet.filename, rels.root);
@@ -291,7 +290,7 @@ export default class XlsxTemplate {
                 cellsInserted += newCellsInserted;
                 this.pushRight(this.workbook, sheet.root, cell.attrib.r, newCellsInserted);
               }
-            } else if (placeholder.full && placeholder.type === 'normal' && substitution instanceof Array) {
+            } else if (placeholder.full && placeholder.type === 'normal' && Array.isArray(substitution)) {
               appendCell = false; // don't double-insert cells
               newCellsInserted = this.substituteArray(cells, cell, substitution);
 
@@ -299,7 +298,7 @@ export default class XlsxTemplate {
                 cellsInserted += newCellsInserted;
                 this.pushRight(this.workbook, sheet.root, cell.attrib.r, newCellsInserted);
               }
-            } else if (placeholder.type === 'image' && placeholder.full) {
+            } else if (placeholder.type === 'image' && placeholder.full && !Array.isArray(substitution)) {
               if (rels != null) {
                 if (drawing == null) {
                   drawing = this.loadDrawing(sheet.root, sheet.filename, rels.root);
@@ -313,7 +312,7 @@ export default class XlsxTemplate {
               if (placeholder.key) {
                 substitution = _get(substitutions, placeholder.name + '.' + placeholder.key);
               }
-              sharedString = this.substituteScalar(cell, sharedString, placeholder, substitution).toString();
+              sharedString = this.substituteScalar(cell, sharedString, placeholder, (substitution instanceof Array) ? substitution[0] : substitution).toString();
             }
           });
         }
@@ -952,7 +951,7 @@ export default class XlsxTemplate {
   public substituteScalar(
     cell: Element,
     str: string,
-    placeholder: { full: any; key?: any; name?: string; placeholder: any; type?: string },
+    placeholder: Placeholder,
     substitution: SubstitutionValue,
   ) {
     if (placeholder.full) {
@@ -991,13 +990,13 @@ export default class XlsxTemplate {
   // Returns total number of new cells inserted on the original row.
   public substituteTable(
     row: Element,
-    newTableRows: any[],
-    cells: any[],
+    newTableRows: Element[],
+    cells: Element[],
     cell: Element,
-    namedTables: any[],
-    substitution: any[],
-    key: any,
-    placeholder: { subType: string; placeholder: any },
+    namedTables: NamedTable[],
+    substitution: object[],
+    key: string,
+    placeholder: Placeholder,
     drawing: any,
   ) {
     let newCellsInserted = 0; // on the original row
@@ -1007,12 +1006,12 @@ export default class XlsxTemplate {
       delete cell.attrib.t;
       this.replaceChildren(cell, []);
     } else {
-      const parentTables = namedTables.filter((namedTable: { root: { attrib: { ref: any } } }) => {
+      const parentTables = namedTables.filter((namedTable) => {
         const range = this.splitRange(namedTable.root.attrib.ref);
         return this.isWithin(cell.attrib.r, range.start, range.end);
       });
 
-      substitution.forEach((element: any, idx: number) => {
+      substitution.forEach((element: object, idx: number) => {
         let newRow: Element;
         let newCell: Element;
         let newCellsInsertedOnNewRow = 0;
@@ -1059,10 +1058,9 @@ export default class XlsxTemplate {
             this.updateRowSpan(newRow, newCellsInsertedOnNewRow);
           } else if (placeholder.subType === 'image' && value !== '') {
             this.substituteImage(newCell, placeholder.placeholder, placeholder, value, drawing);
+            newRow.append(newCell);
           } else {
             this.insertCellValue(newCell, value);
-
-            // Add the cell that previously held the placeholder
             newRow.append(newCell);
           }
 
@@ -1091,7 +1089,7 @@ export default class XlsxTemplate {
   public substituteImage(
     cell: Element,
     str: string,
-    placeholder: any,
+    placeholder: Placeholder,
     substitution: SubstitutionValue,
     drawing: { relRoot: Element; root: Element },
   ) {
@@ -1551,19 +1549,6 @@ export default class XlsxTemplate {
         imageObj = imageObj.toString();
         // if(this.isUrl(imageObj)){
         // TODO
-        // }else{
-        if ('imageRootPath' in this.option && fs.existsSync(this.option.imageRootPath + '/' + imageObj)) {
-          // get the Absolute path file
-          return Buffer.from(
-            fs.readFileSync(this.option.imageRootPath + '/' + imageObj, { encoding: 'base64' }),
-            'base64',
-          );
-        } else {
-          if (fs.existsSync(imageObj)) {
-            // get the relatif path file
-            return Buffer.from(fs.readFileSync(imageObj, { encoding: 'base64' }), 'base64');
-          }
-        }
         // }
         try {
           const buff = Buffer.from(imageObj, 'base64');
