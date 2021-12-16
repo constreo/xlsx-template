@@ -15,12 +15,12 @@ export interface NamedTable {
   root: Element;
 }
 
-interface OutputByType {
-  base64: string;
-  uint8array: Uint8Array;
-  arraybuffer: ArrayBuffer;
-  blob: Blob;
-  nodebuffer: Buffer;
+export type GenerateOptions = {
+  base64?: boolean;
+  compression?: string;
+  /** base64 (default), string, uint8array, blob */
+  type?: string;
+  comment?: string;
 }
 
 export type CellReference = {
@@ -31,8 +31,6 @@ export type CellReference = {
   rowAbsolute?: boolean;
   row: number;
 };
-
-export type GenerateOptions = keyof OutputByType;
 
 export interface RangeSplit {
   start: string;

@@ -2,7 +2,7 @@ import sizeOf from 'buffer-image-size';
 import { Element, ElementTree, parse, SubElement, tostring } from 'elementtree';
 import JSZip from 'jszip';
 import path from 'path';
-import { CellReference, NamedTable, Options, Sheet, SubstitutionValue, TemplatePlaceholder } from './types';
+import { CellReference, GenerateOptions, NamedTable, Options, Sheet, SubstitutionValue, TemplatePlaceholder } from './types';
 
 const DOCUMENT_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
 const CALC_CHAIN_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain';
@@ -417,7 +417,7 @@ export default class XlsxTemplate {
   /**
    * Generate a new binary .xlsx file
    */
-  public generate(options: JSZipGeneratorOptions): any {
+  public generate(options: GenerateOptions): any {
     if (!options) {
       options = {
         base64: false,
