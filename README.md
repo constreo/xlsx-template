@@ -193,6 +193,11 @@ You can pass options to `generate()` to set a different return type. use
 
 ## Changelog
 
+### Version 2.0.0
+* Converted project to TypeScript
+* Changed project target from Node.js to Browser
+* Fixed minor issues regarding images
+
 ### Version 1.3.0
 * Added support for optional moving of the images together with table. (#109)
 
