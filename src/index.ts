@@ -2,7 +2,7 @@ import sizeOf from 'buffer-image-size';
 import { Element, ElementTree, parse, SubElement, tostring } from 'elementtree';
 import JSZip from 'jszip';
 import path from 'path';
-import { CellReference, NamedTable, Options, Placeholder, Sheet, SubstitutionValue } from './types';
+import { CellReference, NamedTable, Options, Sheet, SubstitutionValue, TemplatePlaceholder } from './types';
 
 const DOCUMENT_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
 const CALC_CHAIN_RELATIONSHIP = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain';
@@ -951,7 +951,12 @@ export default class XlsxTemplate {
   }
 
   // Perform substitution of a single value
-  public substituteScalar(cell: Element, str: string, placeholder: Placeholder, substitution: SubstitutionValue) {
+  public substituteScalar(
+    cell: Element,
+    str: string,
+    placeholder: TemplatePlaceholder,
+    substitution: SubstitutionValue,
+  ) {
     if (placeholder.full) {
       return this.insertCellValue(cell, substitution);
     } else {
@@ -994,7 +999,7 @@ export default class XlsxTemplate {
     namedTables: NamedTable[],
     substitution: object[],
     key: string,
-    placeholder: Placeholder,
+    placeholder: TemplatePlaceholder,
     drawing: any,
   ) {
     let newCellsInserted = 0; // on the original row
@@ -1092,7 +1097,7 @@ export default class XlsxTemplate {
   public substituteImage(
     cell: Element,
     str: string,
-    placeholder: Placeholder,
+    placeholder: TemplatePlaceholder,
     substitution: SubstitutionValue,
     drawing: { relRoot: Element; root: Element },
     /**

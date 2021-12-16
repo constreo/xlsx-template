@@ -7,6 +7,7 @@ export interface TemplatePlaceholder {
   name: string;
   key: string;
   placeholder?: string;
+  subType?: string;
 }
 
 export interface NamedTable {
@@ -51,15 +52,6 @@ export type Options = {
   moveImages?: boolean;
   imageRatio?: number;
   moveSameLineImages?: boolean;
-};
-
-export type Placeholder = {
-  full?: string;
-  key?: string;
-  name?: string;
-  placeholder: string;
-  type?: string;
-  subType?: string;
 };
 
 export type Sheet = {
