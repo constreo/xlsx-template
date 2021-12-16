@@ -1041,7 +1041,7 @@ export default class XlsxTemplate {
           }
 
           // Create a new cell
-          newCell = this.cloneElement(cell);
+          newCell = this.cloneElement(cell, true);
           newCell.attrib.r = this.joinRef({
             row: parseInt(newRow.attrib.r, 10),
             col: this.splitRef(newCell.attrib.r).col,
@@ -1057,7 +1057,12 @@ export default class XlsxTemplate {
 
             this.updateRowSpan(newRow, newCellsInsertedOnNewRow);
           } else if (placeholder.subType === 'image' && value !== '') {
-            this.substituteImage(newCell, placeholder.placeholder, placeholder, value, drawing);
+            // override fit to cell logic, since merge cells are only updated after images are replaced
+            let imageDimensions;
+            if (this.isMergeCell(cell)) {
+              imageDimensions = this.getMergeCellDimensions(cell);
+            }
+            this.substituteImage(newCell, placeholder.placeholder, placeholder, value, drawing, imageDimensions);
             newRow.append(newCell);
           } else {
             this.insertCellValue(newCell, value);
@@ -1092,6 +1097,11 @@ export default class XlsxTemplate {
     placeholder: Placeholder,
     substitution: SubstitutionValue,
     drawing: { relRoot: Element; root: Element },
+    /**
+     * Specific dimensions that the image should be sized to.
+     * If no value is given (undefined), then the image is only fitted if the cell is a merge cell.
+     */
+    fitToDimensions?: { width: number, height: number },
   ) {
     this.substituteScalar(cell, str, placeholder, '');
     if (substitution === null || substitution === '') {
@@ -1116,32 +1126,21 @@ export default class XlsxTemplate {
     let imageWidth = this.pixelsToEMUs(dimension.width);
     let imageHeight = this.pixelsToEMUs(dimension.height);
     // let sheet = this.loadSheet(this.substitueSheetName);
-    let imageInMergeCell = false;
-    this.sheet.root.findall('mergeCells/mergeCell').forEach((mergeCell: any) => {
+    if (fitToDimensions === undefined && this.isMergeCell(cell)) {
+      fitToDimensions = this.getMergeCellDimensions(cell);
+    }
+    if (fitToDimensions) {
       // If image is in merge cell, fit the image
-      if (this.cellInMergeCells(cell, mergeCell)) {
-        const mergeCellWidth = this.getWidthMergeCell(mergeCell, this.sheet);
-        const mergeCellHeight = this.getHeightMergeCell(mergeCell, this.sheet);
-        const mergeWidthEmus = this.columnWidthToEMUs(mergeCellWidth);
-        const mergeHeightEmus = this.rowHeightToEMUs(mergeCellHeight);
-        /*if(imageWidth <= mergeWidthEmus && imageHeight <= mergeHeightEmus){
-                    //Image as more little than the merge cell
-                    imageWidth = mergeWidthEmus;
-                    imageHeight = mergeHeightEmus;
-                }*/
-        const widthRate = imageWidth / mergeWidthEmus;
-        const heightRate = imageHeight / mergeHeightEmus;
-        if (widthRate > heightRate) {
-          imageWidth = Math.floor(imageWidth / widthRate);
-          imageHeight = Math.floor(imageHeight / widthRate);
-        } else {
-          imageWidth = Math.floor(imageWidth / heightRate);
-          imageHeight = Math.floor(imageHeight / heightRate);
-        }
-        imageInMergeCell = true;
+      const widthRate = imageWidth / fitToDimensions.width;
+      const heightRate = imageHeight / fitToDimensions.height;
+      if (widthRate > heightRate) {
+        imageWidth = Math.floor(imageWidth / widthRate);
+        imageHeight = Math.floor(imageHeight / widthRate);
+      } else {
+        imageWidth = Math.floor(imageWidth / heightRate);
+        imageHeight = Math.floor(imageHeight / heightRate);
       }
-    });
-    if (imageInMergeCell === false) {
+    } else {
       let ratio = 100;
       if (this.option && this.option.imageRatio) {
         ratio = this.option.imageRatio;
@@ -1183,6 +1182,28 @@ export default class XlsxTemplate {
     const avLst = SubElement(prstGeom, 'a:avLst');
     const clientData = SubElement(imagePart, 'xdr:clientData');
     return true;
+  }
+
+  private isMergeCell(cell: Element) {
+    for (const mergeCell of this.sheet.root.findall('mergeCells/mergeCell')) {
+      // If image is in merge cell, fit the image
+      if (this.cellInMergeCells(cell, mergeCell)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private getMergeCellDimensions(cell: Element): { width: number, height: number } {
+    const mergeCell = this.sheet.root.findall('mergeCells/mergeCell').find(mc => this.cellInMergeCells(cell, mc));
+    const mergeCellWidth = this.getWidthMergeCell(mergeCell, this.sheet);
+    const mergeCellHeight = this.getHeightMergeCell(mergeCell, this.sheet);
+    const mergeWidthEmus = this.columnWidthToEMUs(mergeCellWidth);
+    const mergeHeightEmus = this.rowHeightToEMUs(mergeCellHeight);
+    return {
+      width: mergeWidthEmus,
+      height: mergeHeightEmus,
+    };
   }
 
   // Clone an element. If `deep` is true, recursively clone children
