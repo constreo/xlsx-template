@@ -60,7 +60,7 @@ export type Placeholder = {
   placeholder: string;
   type?: string;
   subType?: string;
-}
+};
 
 export type Sheet = {
   id?: number;

@@ -1,6 +1,6 @@
-# XLSX Template
+# XLSX Template for Browsers
 
-[![Build status](https://api.travis-ci.org/optilude/xlsx-template.png?branch=master)](http://travis-ci.org/optilude/xlsx-template)
+> This is a fork from [xlsx-template by Optilude](https://github.com/optilude/xlsx-template), a Excel template replace library for Node.js. This fork has fixed some issues and supports being run in a browser.
 
 This module provides a means of generating "real" Excel reports (i.e. not CSV
 files) in NodeJS applications.
@@ -87,42 +87,32 @@ above.
 
 You can insert images with   
 
-    | My image: | ${image:imageName} |
+    | My image: | ${image:imageData} |
 
 Given data
 
-    var template = { imageName: "helloImage.jpg"}
+    var template = { imageData: "<base64String>"}
 
-You can insert a list of images with   
+You can insert a (vertical) list of images with   
 
-    | My images | ${table:images.name:image} |
+    | My images | ${table:images.data:image} |
 
 Given data
 
-    var template = { images: [{name : "helloImage1.jpg"}, {name : "helloImage2.jpg"}]}
+    var template = { images: [{ data : "<base64String>" }, { data : "<base64String>" }]}
 
-Supported image format in given data : 
+Image data can be provided as: 
 - Base64 string
 - Base64 Buffer
-- Absolute path file
-- relative path file (absolute is prior to relative in test)
-- URL : TODO
 
-You can pass imageRootPath option for setting the root folder for your images.  
+If the image placeholder is in a standard cell, then the image is insert with its original size (may break the cell boundaries).  
+If the image placeholder is in a merge cell, then the image is resized (without changing the aspect ratio) to fill the merge cell (similar to the CSS statement `object-fit: contain`).
 
-    var option = {imageRootPath : "/path/to/your/image/dir"}  
-    ...  
-    var t = new XlsxTemplate(data, option);
-
-If the image Placeholders is in standard cell, image is insert normaly  
-If the image Placeholders is in merge cell, image feet (at the best) the size of the merge cell.
-
-You can pass imageRatio option for adjust the ratio image (in percent and for standard cell - not applied on merge cell)
+You can pass an option `imageRatio` to resize the original image dimensions (in percent). This has no effect on merge cells.
  
     var option = {imageRatio : 75.4}  
     ...  
     var t = new XlsxTemplate(data, option);
-
 
 
 ## Generating reports

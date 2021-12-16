@@ -312,7 +312,12 @@ export default class XlsxTemplate {
               if (placeholder.key) {
                 substitution = _get(substitutions, placeholder.name + '.' + placeholder.key);
               }
-              sharedString = this.substituteScalar(cell, sharedString, placeholder, (substitution instanceof Array) ? substitution[0] : substitution).toString();
+              sharedString = this.substituteScalar(
+                cell,
+                sharedString,
+                placeholder,
+                substitution instanceof Array ? substitution[0] : substitution,
+              ).toString();
             }
           });
         }
@@ -504,10 +509,7 @@ export default class XlsxTemplate {
     let info = null;
 
     for (const sheet of this.sheets) {
-      if (
-        (typeof sheetNameOrIndex === 'number' && sheet.id === sheetNameOrIndex) ||
-        sheet.name === sheetNameOrIndex
-      ) {
+      if ((typeof sheetNameOrIndex === 'number' && sheet.id === sheetNameOrIndex) || sheet.name === sheetNameOrIndex) {
         info = sheet;
         break;
       }
@@ -588,7 +590,8 @@ export default class XlsxTemplate {
     rel.set('Id', 'rId' + maxId);
     rel.set('Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing');
     const drawing: any = {};
-    const drawingFilename = 'drawing' + this.findMaxFileId(/xl\/drawings\/drawing\d*\.xml/, /drawing(\d*)\.xml/) + '.xml';
+    const drawingFilename =
+      'drawing' + this.findMaxFileId(/xl\/drawings\/drawing\d*\.xml/, /drawing(\d*)\.xml/) + '.xml';
     rel.set('Target', '../drawings/' + drawingFilename);
     drawing.root = Element('xdr:wsDr');
     drawing.root.set('xmlns:xdr', 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing');
@@ -948,12 +951,7 @@ export default class XlsxTemplate {
   }
 
   // Perform substitution of a single value
-  public substituteScalar(
-    cell: Element,
-    str: string,
-    placeholder: Placeholder,
-    substitution: SubstitutionValue,
-  ) {
+  public substituteScalar(cell: Element, str: string, placeholder: Placeholder, substitution: SubstitutionValue) {
     if (placeholder.full) {
       return this.insertCellValue(cell, substitution);
     } else {
@@ -1101,7 +1099,7 @@ export default class XlsxTemplate {
      * Specific dimensions that the image should be sized to.
      * If no value is given (undefined), then the image is only fitted if the cell is a merge cell.
      */
-    fitToDimensions?: { width: number, height: number },
+    fitToDimensions?: { width: number; height: number },
   ) {
     this.substituteScalar(cell, str, placeholder, '');
     if (substitution === null || substitution === '') {
@@ -1194,8 +1192,8 @@ export default class XlsxTemplate {
     return false;
   }
 
-  private getMergeCellDimensions(cell: Element): { width: number, height: number } {
-    const mergeCell = this.sheet.root.findall('mergeCells/mergeCell').find(mc => this.cellInMergeCells(cell, mc));
+  private getMergeCellDimensions(cell: Element): { width: number; height: number } {
+    const mergeCell = this.sheet.root.findall('mergeCells/mergeCell').find((mc) => this.cellInMergeCells(cell, mc));
     const mergeCellWidth = this.getWidthMergeCell(mergeCell, this.sheet);
     const mergeCellHeight = this.getHeightMergeCell(mergeCell, this.sheet);
     const mergeWidthEmus = this.columnWidthToEMUs(mergeCellWidth);
